@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Engineer Dashboard | Kenya Project Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #0c4b33, #147852);
+      color: #fff;
+      margin: 0;
+    }
+
+    header {
+      background-color: #002366;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header img.logo {
+      height: 60px;
+    }
+
+    header h1 {
+      margin-left: 15px;
+    }
+
+    .dashboard-container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 10px;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #fff;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .btn {
+      margin-top: 20px;
+      background-color: #ff8800;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background-color: #cc6e00;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #002366;
+      color: #eee;
+      margin-top: 40px;
+    }
+
+    .logout-btn {
+      background: #dc3545;
+      color: #fff;
+      padding: 8px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    .logout-btn:hover {
+      background: #c82333;
+    }
+
+    .project-list {
+      margin-top: 30px;
+    }
+
+    .project-item {
+      background: rgba(255,255,255,0.15);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .project-item h4 {
+      margin: 0 0 5px;
+      color: #ffd700;
+    }
+
+    .updates img {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="display: flex; align-items: center;">
+      <img src="images/logo.png" alt="Kenya Project Tracker" class="logo" />
+      <h1>Engineer Dashboard</h1>
+    </div>
+    <a href="#" class="logout-btn" onclick="logout()">Logout</a>
+  </header>
+
+  <main class="dashboard-container">
+    <h2>Assigned Projects</h2>
+    <div id="projects" class="project-list">
+      <p>Loading projects...</p>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 Kenya Project Tracker. All rights reserved.
+  </footer>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !user || user.role !== 'engineer') {
+      alert("Access denied. Only engineers can access this dashboard.");
+      window.location.href = "login.html";
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    async function fetchAssignedProjects() {
+      const container = document.getElementById('projects');
+      try {
+        const res = await fetch('/api/projects/engineer/assigned', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const projects = await res.json();
+
+        if (res.ok) {
+          if (projects.length === 0) {
+            container.innerHTML = '<p>No projects assigned yet.</p>';
+            return;
+          }
+
+          container.innerHTML = '';
+          projects.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'project-item';
+            div.innerHTML = `
+              <h4>${p.project_name}</h4>
+              <p><strong>Constituency:</strong> ${p.constituency}</p>
+              <p><strong>Status:</strong> ${p.status}</p>
+              <p><strong>Start:</strong> ${p.start_date} | <strong>End:</strong> ${p.end_date}</p>
+              <form class="update-form" data-project-id="${p.id}" enctype="multipart/form-data">
+                <label for="update_text_${p.id}">Update Description</label>
+                <textarea id="update_text_${p.id}" name="update_text" rows="3" required></textarea>
+                <label for="image_${p.id}">Upload Image</label>
+                <input type="file" id="image_${p.id}" name="image" accept="image/*" />
+                <button type="submit" class="btn">Submit Update</button>
+              </form>
+              <div class="updates" id="updates_${p.id}"><p>Loading updates...</p></div>
+            `;
+            container.appendChild(div);
+            loadUpdates(p.id);
+          });
+          attachUpdateHandlers();
+        } else {
+          container.innerHTML = '<p>❌ Failed to fetch projects.</p>';
+        }
+      } catch (err) {
+        container.innerHTML = '<p>❌ Network error.</p>';
+        console.error(err);
+      }
+    }
+
+    function attachUpdateHandlers() {
+      document.querySelectorAll('.update-form').forEach(form => {
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          const projectId = form.dataset.projectId;
+          const formData = new FormData();
+          formData.append('update_text', form[`update_text_${projectId}`].value);
+          formData.append('engineer_id', user.id);
+          if (form[`image_${projectId}`].files[0]) {
+            formData.append('image', form[`image_${projectId}`].files[0]);
+          }
+
+          try {
+            const res = await fetch(`/api/projects/${projectId}/updates`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              },
+              body: formData
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+              alert('✅ Update submitted!');
+              form.reset();
+              loadUpdates(projectId);
+            } else {
+              alert('❌ ' + (result.error || 'Failed to submit update'));
+            }
+          } catch (err) {
+            console.error(err);
+            alert('❌ Network error.');
+          }
+        });
+      });
+    }
+
+    async function loadUpdates(projectId) {
+      const updatesContainer = document.getElementById(`updates_${projectId}`);
+      try {
+        const res = await fetch(`/api/projects/${projectId}/updates`);
+        const updates = await res.json();
+
+        if (res.ok) {
+          if (updates.length === 0) {
+            updatesContainer.innerHTML = '<p>No updates yet.</p>';
+            return;
+          }
+
+          updatesContainer.innerHTML = '';
+          updates.forEach(u => {
+            updatesContainer.innerHTML += `
+              <div style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background: rgba(255,255,255,0.2); border-radius: 5px;">
+                <p><strong>${new Date(u.date).toLocaleString()}</strong>: ${u.update_text}</p>
+                ${u.image ? `<img src="/uploads/${u.image}" alt="Update Image">` : ''}
+              </div>
+            `;
+          });
+        } else {
+          updatesContainer.innerHTML = '<p>❌ Failed to load updates</p>';
+        }
+      } catch (err) {
+        console.error(err);
+        updatesContainer.innerHTML = '<p>❌ Network error while loading updates.</p>';
+      }
+    }
+
+    fetchAssignedProjects();
+  </script>
+</body>
+</html>

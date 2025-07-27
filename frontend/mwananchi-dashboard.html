@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mwananchi Dashboard | Kenya Project Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      margin: 0;
+      background: url('images/kenya-flag-bg.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+
+    .navbar {
+      background-color: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+    }
+
+    .navbar img.logo {
+      height: 40px;
+      margin-right: 15px;
+    }
+
+    .navbar h1 {
+      font-size: 20px;
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .navbar a {
+      color: #ffc107;
+      text-decoration: none;
+      margin-left: 15px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 12px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .project {
+      background: rgba(255, 255, 255, 0.1);
+      border-left: 5px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+
+    .project h3 {
+      margin: 0 0 10px;
+      color: #ffd700;
+    }
+
+    .feedback-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+      resize: vertical;
+    }
+
+    .feedback-form button {
+      background-color: #ffc107;
+      border: none;
+      padding: 8px 20px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .feedback {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .feedback p {
+      margin: 5px 0;
+    }
+
+    .feedback small {
+      color: #ccc;
+      font-size: 11px;
+    }
+
+    .updates-link {
+      display: inline-block;
+      margin-top: 10px;
+      color: #00ffff;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <img src="images/logo.png" alt="Logo" class="logo" />
+    <h1>Kenya Project Tracker – Mwananchi</h1>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+
+  <div class="container">
+    <h2>Ongoing Projects & Feedback</h2>
+    <div id="project-list">Loading...</div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !user || user.role !== 'mwananchi') {
+      alert("Access denied. Please log in as Mwananchi.");
+      window.location.href = 'login.html';
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    async function fetchProjects() {
+      try {
+        const res = await fetch('/api/projects');
+        const projects = await res.json();
+        const list = document.getElementById('project-list');
+        list.innerHTML = '';
+
+        for (let project of projects) {
+          const feedbackRes = await fetch(`/api/projects/${project.id}/feedback`);
+          const feedbacks = await feedbackRes.json();
+
+          const div = document.createElement('div');
+          div.className = 'project';
+
+          let feedbackHTML = feedbacks.map(fb => `
+            <div class="feedback">
+              <p><strong>${fb.name}:</strong> ${fb.comment}</p>
+              <small>${new Date(fb.created_at).toLocaleString()}</small>
+            </div>
+          `).join('');
+
+          div.innerHTML = `
+            <h3>${project.project_name}</h3>
+            <p><strong>Constituency:</strong> ${project.constituency}</p>
+            <p><strong>Status:</strong> ${project.status}</p>
+            <p><strong>Budget:</strong> KES ${Number(project.budget).toLocaleString()}</p>
+            <p><strong>Start Date:</strong> ${new Date(project.start_date).toLocaleDateString()}</p>
+            <p><strong>End Date:</strong> ${new Date(project.end_date).toLocaleDateString()}</p>
+            <p><strong>MP:</strong> ${project.mp_name || 'N/A'}</p>
+            <p><strong>Engineers:</strong> ${project.engineers || 'N/A'}</p>
+
+            <a class="updates-link" href="view-project.html?projectId=${project.id}">📸 View Project Updates</a>
+
+            <form class="feedback-form" onsubmit="return submitFeedback(event, ${project.id})">
+              <textarea id="comment-${project.id}" placeholder="Your comment about this project..."></textarea>
+              <button type="submit">Submit Feedback</button>
+            </form>
+
+            <div><strong>Previous Feedback:</strong></div>
+            ${feedbackHTML}
+          `;
+
+          list.appendChild(div);
+        }
+      } catch (err) {
+        console.error("❌ Failed to load projects:", err);
+        document.getElementById('project-list').innerHTML = "<p>❌ Could not load projects.</p>";
+      }
+    }
+
+    async function submitFeedback(e, projectId) {
+      e.preventDefault();
+      const comment = document.getElementById(`comment-${projectId}`).value.trim();
+      if (!comment) return alert("Write something before submitting.");
+
+      const res = await fetch(`/api/projects/${projectId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ comment, user_id: user.id })
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert('✅ Feedback submitted');
+        fetchProjects();
+      } else {
+        alert(result.error || '❌ Failed to submit feedback.');
+      }
+    }
+
+    fetchProjects();
+  </script>
+
+</body>
+</html>

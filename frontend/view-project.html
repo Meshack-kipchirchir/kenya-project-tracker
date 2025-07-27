@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Updates | Kenya Project Tracker</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #006400, #228B22);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #002366;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .logo {
+      height: 60px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      min-height: 300px;
+    }
+
+    .update-card {
+      background-color: #fff;
+      color: #000;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border-left: 5px solid #28a745;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .update-card h3 {
+      margin-top: 0;
+      color: #002366;
+    }
+
+    .update-card img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 15px;
+      background-color: #002366;
+      color: white;
+      margin-top: 40px;
+    }
+
+    a.back-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a.back-link:hover {
+      background-color: #1e7e34;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+        margin: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="images/logo.png" alt="Kenya Project Tracker Logo" class="logo" />
+    <h1>Project Updates</h1>
+  </header>
+
+  <main class="container">
+    <div id="updates-list">Loading updates...</div>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2025 Kenya Project Tracker</p>
+  </footer>
+
+  <script>
+    const token = localStorage.getItem('token');
+    let user = null;
+
+    try {
+      user = JSON.parse(localStorage.getItem('user'));
+    } catch (e) {
+      console.error("❌ Invalid user data:", e);
+    }
+
+    // Allow access to both 'mwananchi' and 'mp' roles
+    if (!token || !user || (user.role !== 'mwananchi' && user.role !== 'mp')) {
+      alert("Access denied. Please log in as Mwananchi or MP.");
+      window.location.href = 'login.html';
+    }
+
+    // Try to get projectId from URL params or fallback to sessionStorage
+    const params = new URLSearchParams(window.location.search);
+    let projectId = params.get('projectId');
+
+    if (!projectId) {
+      projectId = sessionStorage.getItem('lastViewedProjectId');
+    } else {
+      // Save last viewed projectId for fallback
+      sessionStorage.setItem('lastViewedProjectId', projectId);
+    }
+
+    const updatesList = document.getElementById('updates-list');
+
+    if (!projectId) {
+      updatesList.innerHTML = `
+        <p>❌ No project selected.</p>
+        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+      `;
+    } else {
+      fetchUpdates(projectId);
+    }
+
+    async function fetchUpdates(projectId) {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/updates`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          if (res.status === 404) {
+            updatesList.innerHTML = `<p>❌ Project not found.</p>`;
+          } else if (res.status === 401 || res.status === 403) {
+            alert('Session expired or unauthorized. Please log in again.');
+            localStorage.clear();
+            window.location.href = 'login.html';
+          } else {
+            throw new Error(`Server error: ${res.status}`);
+          }
+          return;
+        }
+
+        const updates = await res.json();
+        updatesList.innerHTML = '';
+
+        if (!Array.isArray(updates) || updates.length === 0) {
+          updatesList.innerHTML = '<p>No updates posted yet for this project.</p>';
+          return;
+        }
+
+        updates.forEach(update => {
+          const card = document.createElement('div');
+          card.className = 'update-card';
+
+          card.innerHTML = `
+            <h3>${update.update_text}</h3>
+            ${update.image ? `<img src="/uploads/${update.image}" alt="Project Update Image" />` : ''}
+            <p><strong>Date:</strong> ${new Date(update.date).toLocaleString()}</p>
+          `;
+
+          updatesList.appendChild(card);
+        });
+      } catch (err) {
+        console.error("❌ Failed to load updates:", err);
+        updatesList.innerHTML = "<p>❌ Could not load updates. Please try again later.</p>";
+      }
+    }
+  </script>
+
+</body>
+</html>

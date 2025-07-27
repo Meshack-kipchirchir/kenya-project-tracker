@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login – Kenya Project Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      color: #000;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #004080;
+      padding: 10px 20px;
+      color: #fff;
+    }
+
+    .navbar img.logo {
+      height: 40px;
+    }
+
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 15px;
+      font-weight: bold;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 50px auto;
+      background: #f9f9f9;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-title {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #004080;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #003366;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    @media (max-width: 480px) {
+      .form-container {
+        margin: 20px;
+      }
+
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .navbar a {
+        margin-left: 0;
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>
+      <img src="images/logo.png" alt="Kenya Project Tracker" class="logo">
+    </div>
+    <div>
+      <a href="index.html">Home</a>
+      <a href="register.html">Register</a>
+    </div>
+  </div>
+
+  <!-- Login Form -->
+  <div class="form-container">
+    <h2 class="form-title">Login</h2>
+    <form id="loginForm">
+      <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      <button type="submit" class="btn">Login</button>
+    </form>
+    <p class="form-footer" style="text-align:center; margin-top: 15px;">
+      Don't have an account? <a href="register.html">Register here</a>
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    &copy; 2025 Kenya Project Tracker. All rights reserved.
+  </footer>
+
+  <!-- Auto-Routing Script -->
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('role', data.user.role);
+
+          const role = data.user.role;
+
+          if (role === 'mp') {
+            window.location.href = 'mp-dashboard.html';
+          } else if (role === 'engineer') {
+            window.location.href = 'engineer-dashboard.html';
+          } else if (role === 'mwananchi') {
+            window.location.href = 'mwananchi-dashboard.html';
+          } else {
+            alert('❌ Unknown role. Contact admin.');
+          }
+
+        } else {
+          alert(data.message || '❌ Login failed');
+        }
+
+      } catch (error) {
+        alert('❌ Network error. Please try again.');
+        console.error(error);
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Kenya Project Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-image">
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="dashboard-header-inner">
+      <img src="images/logo.png" alt="Kenya Project Tracker Logo" class="logo" />
+      <div class="dashboard-heading">
+        <h1>Dashboard</h1>
+        <p id="welcome-msg">Welcome, [User Role]</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Content -->
+  <main class="dashboard-container">
+
+    <!-- MP Section -->
+    <section class="card role-mp">
+      <h2>MP Options</h2>
+      <a href="add-project.html" class="btn">Add New Project</a>
+      <a href="view-projects.html" class="btn">View All Projects</a>
+    </section>
+
+    <!-- Engineer Section -->
+    <section class="card role-engineer">
+      <h2>Engineer Options</h2>
+      <a href="view-projects.html" class="btn">View & Update Project Progress</a>
+    </section>
+
+    <!-- Mwananchi Section -->
+    <section class="card role-mwananchi">
+      <h2>Mwananchi Options</h2>
+      <a href="view-projects.html" class="btn">View Ongoing Projects</a>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-note">
+    <p>&copy; 2025 Kenya Project Tracker. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Set user role and name from localStorage
+    const role = localStorage.getItem('role');
+    const name = localStorage.getItem('name') || 'User';
+
+    // Update welcome message
+    document.getElementById('welcome-msg').textContent = `Welcome, ${name} (${role})`;
+
+    // Show only relevant section
+    document.querySelectorAll('.card').forEach(section => {
+      section.style.display = 'none';
+    });
+
+    if (role) {
+      const roleSection = document.querySelector(`.role-${role}`);
+      if (roleSection) {
+        roleSection.style.display = 'block';
+      }
+    }
+  </script>
+
+</body>
+</html>

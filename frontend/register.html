@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Registration – Kenya Project Tracker</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #006400, #228B22);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .form-container {
+      max-width: 450px;
+      margin: 50px auto;
+      background: rgba(0,0,0,0.6);
+      padding: 30px;
+      border-radius: 10px;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .form-title {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .btn {
+      background-color: #ff0000;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      padding: 12px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background-color: #cc0000;
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 15px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2 class="form-title">Register</h2>
+
+    <form id="registerForm">
+      <input type="text" id="name" name="name" placeholder="Full Name" required />
+      <input type="email" id="email" name="email" placeholder="Email Address" required />
+      <input type="password" id="password" name="password" placeholder="Password" required />
+      <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required />
+
+      <select id="role" name="role" required>
+        <option value="">-- Select Role --</option>
+        <option value="mp">MP</option>
+        <option value="engineer">Engineer</option>
+        <option value="mwananchi">Mwananchi</option>
+      </select>
+
+      <button type="submit" class="btn">Register</button>
+    </form>
+
+    <p class="form-footer">
+      Already have an account? <a href="login.html" style="color: #fff; text-decoration: underline;">Login here</a>
+    </p>
+  </div>
+
+  <script>
+    const form = document.getElementById('registerForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const confirmPassword = form.confirm_password.value;
+      const role = form.role.value;
+
+      if (!role) {
+        alert("❌ Please select a user role.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        alert("❌ Passwords do not match!");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, role })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert('✅ Registration successful! You can now log in.');
+          window.location.href = 'login.html';
+        } else {
+          alert('❌ ' + (data.message || data.error || 'Registration failed.'));
+          console.error('Backend error:', data);
+        }
+
+      } catch (error) {
+        alert('❌ Network error. Try again later.');
+        console.error(error);
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,346 @@
+/* CSS Variables */
+:root {
+  --primary: #2e7d32;         /* Kenya Green */
+  --primary-dark: #1b5e20;
+  --accent: #ffc107;          /* Gold for highlights */
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  --radius: 12px;
+  --transition: 0.3s ease;
+  --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font);
+}
+
+/* Body Background */
+body {
+  background: url('../images/kenya-flag-map.png') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  z-index: -1;
+}
+
+/* Top-Right Logo */
+.logo {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 80px;
+  height: auto;
+  z-index: 1000;
+  transition: transform var(--transition);
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+/* Bottom Text */
+.bottom-text {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  text-align: center;
+  z-index: 1000;
+  max-width: 90%;
+  animation: fadeInUp 1s ease-in-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--primary-dark);
+  padding: 20px 40px;
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.navbar img.logo {
+  height: 50px;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  margin-left: 25px;
+  font-weight: 500;
+  transition: color var(--transition);
+}
+
+.navbar a:hover {
+  color: var(--accent);
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* Form Styles */
+.form-container {
+  background: var(--card-bg);
+  padding: 50px;
+  margin: 80px auto;
+  max-width: 550px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.form-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+  color: var(--primary-dark);
+}
+
+.form-container input,
+.form-container select,
+.form-container textarea {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-size: 16px;
+}
+
+/* Buttons */
+.btn {
+  background-color: var(--primary);
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius);
+  width: 100%;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.btn:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Section Headers */
+.landing-header,
+.dashboard-header {
+  text-align: center;
+  padding: 60px 20px 40px;
+  color: white;
+  text-shadow: 1px 2px 5px black;
+}
+
+.landing-header h1,
+.dashboard-header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+}
+
+.landing-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: var(--radius);
+  width: 300px;
+  box-shadow: var(--shadow);
+  transition: transform var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card h2 {
+  color: var(--primary-dark);
+  margin-bottom: 20px;
+}
+
+/* Project Cards */
+#projects-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.project-card {
+  background: var(--card-bg);
+  padding: 25px;
+  border-left: 6px solid var(--primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform var(--transition);
+}
+
+.project-card:hover {
+  transform: scale(1.01);
+}
+
+.project-card h3 {
+  color: var(--primary-dark);
+  margin-bottom: 10px;
+}
+
+.project-card p {
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.project-card .status {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+/* MP Dashboard - Award Section */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 25px;
+  padding: 20px;
+}
+
+.project-box {
+  background: var(--card-bg);
+  padding: 25px;
+  border-radius: var(--radius);
+  border-left: 5px solid var(--primary);
+  box-shadow: var(--shadow);
+  transition: transform var(--transition);
+}
+
+.project-box:hover {
+  transform: translateY(-5px);
+}
+
+.project-box h3 {
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.project-box p {
+  margin: 6px 0;
+  color: #444;
+  font-size: 15px;
+}
+
+.project-box select,
+.project-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 15px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+}
+
+.project-box button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.project-box button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Footer */
+footer,
+.footer-note {
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  text-align: center;
+  padding: 20px;
+  margin-top: 60px;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .navbar a {
+    margin: 8px 0;
+  }
+
+  .form-container {
+    margin: 30px 15px;
+    padding: 30px;
+  }
+
+  .logo {
+    width: 60px;
+    top: 10px;
+    right: 10px;
+  }
+
+  .dashboard-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bottom-text {
+    font-size: 13px;
+    padding: 10px 18px;
+  }
+}

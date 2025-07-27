@@ -1,0 +1,314 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MP Dashboard | Kenya Project Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background-color: #002366;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fff;
+    }
+
+    header .logo {
+      height: 50px;
+    }
+
+    header h1 {
+      margin-left: 15px;
+      font-size: 1.5rem;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background-color: #c82333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+      color: #002366;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .btn-submit {
+      width: 100%;
+      margin-top: 25px;
+      background-color: #002366;
+      color: #fff;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-submit:hover {
+      background-color: #001a4d;
+    }
+
+    hr {
+      margin: 40px 0;
+      border: 0;
+      border-top: 2px dashed #ccc;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 15px;
+      background-color: #002366;
+      color: #eee;
+    }
+
+    /* Specific styling for the link-button */
+    .view-projects-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="display: flex; align-items: center;">
+      <img src="images/logo.png" alt="Kenya Project Tracker" class="logo" />
+      <h1>MP Dashboard</h1>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <div class="container">
+    <!-- Add Project Form -->
+    <h2>Add New Project</h2>
+    <form id="add-project-form">
+      <label for="constituency">Constituency</label>
+      <input type="text" id="constituency" name="constituency" placeholder="e.g., Ainabkoi" required />
+
+      <label for="project_name">Project Name</label>
+      <input type="text" id="project_name" name="project_name" placeholder="e.g., Road Construction" required />
+
+      <label for="status">Status</label>
+      <select id="status" name="status" required>
+        <option value="">-- Select Status --</option>
+        <option value="Planned">Planned</option>
+        <option value="Ongoing">Ongoing</option>
+        <option value="Completed">Completed</option>
+      </select>
+
+      <label for="budget">Budget (KES)</label>
+      <input type="number" id="budget" name="budget" placeholder="e.g., 15000000" required min="0" />
+
+      <label for="start_date">Start Date</label>
+      <input type="date" id="start_date" name="start_date" required />
+
+      <label for="end_date">End Date</label>
+      <input type="date" id="end_date" name="end_date" required />
+
+      <button type="submit" class="btn-submit">Submit Project</button>
+    </form>
+
+    <!-- Award Engineers -->
+    <hr />
+    <h2>Award Engineers to Project</h2>
+    <form id="award-form">
+      <label for="project_id">Select Project</label>
+      <select id="project_id" name="project_id" required>
+        <option value="">-- Select Project --</option>
+      </select>
+
+      <label for="engineer_ids">Select Engineers</label>
+      <select id="engineer_ids" name="engineer_ids" multiple required style="height: 120px;">
+        <!-- Engineers loaded here -->
+      </select>
+
+      <button type="submit" class="btn-submit">Award Engineers</button>
+    </form>
+
+    <!-- View Projects & Feedback Link -->
+    <hr />
+    <div class="view-projects-link">
+      <a href="view-project.html" class="btn-submit">View Projects & Give Feedback</a>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 Kenya Project Tracker. All rights reserved.
+  </footer>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !user || user.role !== 'mp') {
+      alert('Access denied. Only MPs can access this page.');
+      window.location.href = 'login.html';
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    // Handle Add Project Form
+    document.getElementById('add-project-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const data = {
+        constituency: form.constituency.value.trim(),
+        project_name: form.project_name.value.trim(),
+        status: form.status.value,
+        budget: parseFloat(form.budget.value),
+        start_date: form.start_date.value,
+        end_date: form.end_date.value
+      };
+
+      try {
+        const res = await fetch('/api/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          alert('✅ Project created successfully!');
+          form.reset();
+          loadEngineersAndProjects(); // Refresh project dropdowns
+        } else {
+          alert('❌ ' + (result.error || 'Project creation failed.'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('❌ Network error. Please try again.');
+      }
+    });
+
+    // Load engineers and projects into dropdowns
+    async function loadEngineersAndProjects() {
+      try {
+        // Load engineers
+        const engineerRes = await fetch('/api/auth/engineers');
+        const engineers = await engineerRes.json();
+        const engineerSelect = document.getElementById('engineer_ids');
+        engineerSelect.innerHTML = '';
+        engineers.forEach(engineer => {
+          const option = document.createElement('option');
+          option.value = engineer.id;
+          option.textContent = engineer.name;
+          engineerSelect.appendChild(option);
+        });
+
+        // Load projects
+        const projectRes = await fetch('/api/projects', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const projects = await projectRes.json();
+        const projectSelect = document.getElementById('project_id');
+        projectSelect.innerHTML = '<option value="">-- Select Project --</option>';
+        projects.forEach(project => {
+          const option = document.createElement('option');
+          option.value = project.id;
+          option.textContent = `${project.project_name} - ${project.constituency}`;
+          projectSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('❌ Failed to load dropdown data:', error);
+      }
+    }
+
+    // Award Engineers Form
+    document.getElementById('award-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const projectId = document.getElementById('project_id').value;
+      const selected = Array.from(document.getElementById('engineer_ids').selectedOptions);
+      const engineerIds = selected.map(opt => parseInt(opt.value));
+
+      if (!projectId || engineerIds.length === 0) {
+        alert('Select a project and at least one engineer.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/projects/${projectId}/award`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ engineer_ids: engineerIds })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          alert('✅ Engineers awarded:\n' + result.details.join('\n'));
+          document.getElementById('award-form').reset();
+        } else {
+          alert('❌ ' + (result.error || 'Awarding failed.'));
+        }
+      } catch (error) {
+        console.error('❌ Error awarding engineers:', error);
+        alert('❌ Network error.');
+      }
+    });
+
+    loadEngineersAndProjects();
+  </script>
+
+</body>
+</html>
