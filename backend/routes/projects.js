@@ -19,7 +19,7 @@ const {
   getFeedback,
   awardEngineer,
   getProjectEngineers
-} = require('../controllers/projectController');
+} = require('../controllers/projectcontroller');
 
 // ✅ Multer for image uploads
 const storage = multer.diskStorage({
