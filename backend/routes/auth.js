@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { register, login, getEngineers } = require('../controllers/authController');
+const { register, login, getEngineers } = require('../controllers/authcontroller');
 
 // ✅ Register a new user
 router.post('/register', register);
